@@ -1,6 +1,5 @@
 package com.bridgelabz.employeepayrollservice;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 public class EmployeePayrollService {
@@ -10,14 +9,16 @@ public class EmployeePayrollService {
 	}
 
 	private List<EmployeePayrollData> employeePayrollList;
-	
+
+	EmployeePayrollDBService employeePayrollDBService = new EmployeePayrollDBService();
+
 	public EmployeePayrollService() { }
 
 	public EmployeePayrollService(List<EmployeePayrollData> employeePayrollList) {
 		this.employeePayrollList = employeePayrollList;
 	}
 
-	private void readEmployeePayrollData(Scanner consoleInputReader) {
+	public void readEmployeePayrollData(Scanner consoleInputReader) {
 		System.out.println("Enter Employee ID: ");
 		int id = consoleInputReader.nextInt();
 		System.out.println("Enter Employee Name: ");
@@ -47,23 +48,52 @@ public class EmployeePayrollService {
 		}
 		return 0;
 	}
-	
-	public long readEmployeePayrollData(IOService ioservice) {
-		
-        if (ioservice.equals(IOService.FILE_IO)) {
-            this.employeePayrollList = new EmployeePayrollFileIOService().readData();
-            System.out.println("PARSED DATA FROM FILE: ");
-            this.employeePayrollList.forEach(System.out::println);
-        }
-        return this.employeePayrollList.size();
-    }
 
-	public static void main(String[] args) {
 
-		ArrayList<EmployeePayrollData> employeePayrollList = new ArrayList<>();
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService(employeePayrollList);
-		Scanner consoleInputReader = new Scanner(System.in);
-		employeePayrollService.readEmployeePayrollData(consoleInputReader);
-		employeePayrollService.writeEmployeePayrollData(IOService.CONSOLE_IO);
+	public  List<EmployeePayrollData> readEmployeePayrollDataFromDB(IOService ioService)
+	{
+		if(ioService.equals(IOService.DB_IO))
+		{
+			this.employeePayrollList=new EmployeePayrollDBService().readData();
+		}
+		return employeePayrollList;
 	}
+
+	public long readEmployeePayrollData(IOService ioservice) {
+
+		if (ioservice.equals(IOService.FILE_IO)) {
+			this.employeePayrollList = new EmployeePayrollFileIOService().readData();
+			System.out.println("PARSED DATA FROM FILE: ");
+			this.employeePayrollList.forEach(System.out::println);
+		}
+		return this.employeePayrollList.size();
+	}	
+
+	public void updateEmployeeSalary(String name, double salary) 
+	{
+		int result =employeePayrollDBService.updateEmployeeData(name, salary);
+		if(result==0) return;
+		EmployeePayrollData employeePayrollData=this.getEmployeePayrollData(name);
+		if(employeePayrollData!=null) employeePayrollData.salary=salary;
+
+	}
+
+	private EmployeePayrollData getEmployeePayrollData(String name) 
+	{
+		EmployeePayrollData employeePayrollData;
+		employeePayrollData=this.employeePayrollList.stream()
+				.filter(employeeDataItem->employeeDataItem.name.equals(name))
+				.findFirst()
+				.orElse(null);
+
+		return employeePayrollData;
+
+	}
+
+	public boolean checkEmployeePayrollInSyncWithDB(String name)
+	{
+		List<EmployeePayrollData> employeePayrollDataList=employeePayrollDBService.getEmployeePayrollDataFromDB(name);
+		return employeePayrollDataList.get(0).equals(getEmployeePayrollData(name));
+	}
+	
 }
