@@ -4,7 +4,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.sql.Connection;
@@ -101,5 +103,59 @@ public class EmployeePayrollDBService
 		}
 
 		return employeePayrollList;
+	}
+	
+	public Map<String, Double> getDetailsBasedOnGender(int choice)
+	{
+		Map<String, Double> genderSalaryMap = new HashMap<String, Double>();
+		String sql="";
+		if(choice == 1)
+			sql="SELECT SUM(basic_pay),gender FROM payroll JOIN employee ON payroll.id=employee.id GROUP BY gender";
+		else if(choice == 2)
+			sql="SELECT AVG(basic_pay),gender FROM payroll JOIN employee ON payroll.id=employee.id GROUP BY gender";
+		else if(choice == 3)
+			sql="SELECT MIN(basic_pay),gender FROM payroll JOIN employee ON payroll.id=employee.id GROUP BY gender";
+		else if(choice == 4)
+			sql="SELECT MAX(basic_pay),gender FROM payroll JOIN employee ON payroll.id=employee.id GROUP BY gender";
+		else if(choice == 5)
+			sql="SELECT COUNT(basic_pay),gender FROM payroll JOIN employee ON payroll.id=employee.id GROUP BY gender";
+		
+		try (Connection connection = this.getConnection())
+		{
+
+			Statement statement=connection.createStatement();
+			ResultSet resultSet=statement.executeQuery(sql);
+
+			while(resultSet.next())
+			{
+				String gender=resultSet.getString("gender");
+				if(choice == 1) {
+					double salarySum=resultSet.getDouble("SUM(basic_pay)");
+					genderSalaryMap.put(gender, salarySum);
+				}
+				else if(choice == 2) {
+					double salarySum=resultSet.getDouble("AVG(basic_pay)");
+					genderSalaryMap.put(gender, salarySum);
+				}
+				else if(choice == 3) {
+					double salarySum=resultSet.getDouble("MIN(basic_pay)");
+					genderSalaryMap.put(gender, salarySum);
+				}
+				else if(choice == 4) {
+					double salarySum=resultSet.getDouble("MAX(basic_pay)");
+					genderSalaryMap.put(gender, salarySum);
+				}
+				else if(choice == 5) {
+					double salarySum=resultSet.getDouble("COUNT(basic_pay)");
+					genderSalaryMap.put(gender, salarySum);
+				}
+			}
+		} 
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+		}
+
+		return genderSalaryMap;
 	}
 }

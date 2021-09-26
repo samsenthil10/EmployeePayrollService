@@ -11,7 +11,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.bridgelabz.employeepayrollservice.EmployeePayrollService.IOService;
-
 public class EmployeePayrollServiceTest {
 
     @Test
@@ -52,4 +51,64 @@ public class EmployeePayrollServiceTest {
 		boolean result=employeePayrollService.checkEmployeePayrollInSyncWithDB("Terisa");
 		Assert.assertTrue(result);
 	}
+	
+	@Test
+	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalarySumWithGenderMap()
+	{
+		EmployeePayrollDBService employeePayrollService = new EmployeePayrollDBService();
+
+		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
+		expectedGenderSalaryMap.put("M", 2000000.0);
+		expectedGenderSalaryMap.put("F", 3000000.0);
+		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(1);
+		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
+	}
+	
+	@Test
+	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalaryAvgWithGenderMap()
+	{
+		EmployeePayrollDBService employeePayrollService = new EmployeePayrollDBService();
+
+		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
+		expectedGenderSalaryMap.put("M", 1000000.0);
+		expectedGenderSalaryMap.put("F", 3000000.0);
+		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(2);
+		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
+	}
+	
+	@Test
+	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalaryMinWithGenderMap()
+	{
+		EmployeePayrollDBService employeePayrollService = new EmployeePayrollDBService();
+
+		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
+		expectedGenderSalaryMap.put("M", 1000000.0);
+		expectedGenderSalaryMap.put("F", 3000000.0);
+		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(3);
+		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
+	}
+	
+	@Test
+	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalaryMaxWithGenderMap()
+	{
+		EmployeePayrollDBService employeePayrollService = new EmployeePayrollDBService();
+
+		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
+		expectedGenderSalaryMap.put("M", 1000000.0);
+		expectedGenderSalaryMap.put("F", 3000000.0);
+		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(4);
+		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
+	}
+	
+	@Test
+	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalaryCountWithGenderMap()
+	{
+		EmployeePayrollDBService employeePayrollService = new EmployeePayrollDBService();
+
+		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
+		expectedGenderSalaryMap.put("M", 2.0);
+		expectedGenderSalaryMap.put("F", 1.0);
+		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(5);
+		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
+	}	
 }
