@@ -2,6 +2,8 @@ package com.bridgelabz.employeepayrollservice;
 
 import static org.junit.Assert.assertEquals;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -45,10 +47,11 @@ public class EmployeePayrollServiceTest {
 	public void givenNewSalaryForEmployee_WhenUpdated_ShouldSyncWithDB()
 	{
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		EmployeePayrollDBService employeePayrollDBService = new EmployeePayrollDBService();
 		@SuppressWarnings("unused")
 		List<EmployeePayrollData> employeePayrollList = employeePayrollService.readEmployeePayrollDataFromDB(IOService.DB_IO);
-		employeePayrollService.updateEmployeeSalary("Terisa",3000000.00);
-		boolean result=employeePayrollService.checkEmployeePayrollInSyncWithDB("Terisa");
+		employeePayrollDBService.updateEmployeeDataUsingStatement("Terisa",3000000.00);
+		boolean result=employeePayrollService.checkEmployeePayrollInSyncWithDBUsingStatement("Terisa");
 		Assert.assertTrue(result);
 	}
 	
@@ -111,4 +114,35 @@ public class EmployeePayrollServiceTest {
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(5);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}	
+	
+	@Test
+	public void givenDateRangeOfJoiningDate_ShouldReturnCountOfEmployeesJoined()
+	{
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String startDate="2018-01-02";
+		String endDate="2019-11-30";
+
+		LocalDate.parse(startDate, formatter);
+		LocalDate.parse(endDate, formatter);
+		int count=employeePayrollService.getEmployeeJoinCount(IOService.DB_IO,startDate,endDate);
+		Assert.assertEquals(2,count);
+	}
+	@Test
+	public void  givenEmployeePayrollInDB_WhenWrittenToDatabase_ShouldMatchEmployeeCount()
+	{
+		String dateString="2018-01-03";
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate date= LocalDate.parse(dateString, formatter);
+		EmployeePayrollData[] arrayOfEmployees= { new EmployeePayrollData(5, "Sheldon", 100000.0,date)};
+
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService(Arrays.asList(arrayOfEmployees));
+
+		employeePayrollService.writeEmployeePayrollData( IOService.DB_IO);
+		List<EmployeePayrollData> employeePayrollList = employeePayrollService.readEmployeePayrollDataFromOldDB( IOService.DB_IO);
+
+		Assert.assertEquals(4, employeePayrollList.size());
+
+		employeePayrollService.deleteEmployeeData(IOService.DB_IO,5);
+	}
 }
