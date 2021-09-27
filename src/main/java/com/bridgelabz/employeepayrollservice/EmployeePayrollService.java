@@ -12,7 +12,11 @@ public class EmployeePayrollService {
 
 	EmployeePayrollDBService employeePayrollDBService = new EmployeePayrollDBService();
 
-	public EmployeePayrollService() { }
+	public EmployeePayrollService() { 
+		
+		employeePayrollDBService=EmployeePayrollDBService.getInstance();
+
+	}
 
 	public EmployeePayrollService(List<EmployeePayrollData> employeePayrollList) {
 		this.employeePayrollList = employeePayrollList;
@@ -58,6 +62,15 @@ public class EmployeePayrollService {
 		}
 		return employeePayrollList;
 	}
+	
+	public  List<EmployeePayrollData> readEmployeePayrollDataFromOldDB(IOService ioService)
+	{
+		if(ioService.equals(IOService.DB_IO))
+		{
+			this.employeePayrollList=new EmployeePayrollDBService().readDataOld();
+		}
+		return employeePayrollList;
+	}
 
 	public long readEmployeePayrollData(IOService ioservice) {
 
@@ -92,8 +105,33 @@ public class EmployeePayrollService {
 
 	public boolean checkEmployeePayrollInSyncWithDB(String name)
 	{
-		List<EmployeePayrollData> employeePayrollDataList=employeePayrollDBService.getEmployeePayrollDataFromDB(name);
+		List<EmployeePayrollData> employeePayrollDataList=employeePayrollDBService.getEmployeePayrollData(name);
 		return employeePayrollDataList.get(0).equals(getEmployeePayrollData(name));
+	}
+	
+	public boolean checkEmployeePayrollInSyncWithDBUsingStatement(String name)
+	{
+		List<EmployeePayrollData> employeePayrollDataList=employeePayrollDBService.getEmployeePayrollDataFromDBUsingStatement(name);
+		return employeePayrollDataList.get(0).equals(getEmployeePayrollData(name));
+	}
+	
+	public int getEmployeeJoinCount(IOService ioService, String startDate, String endDate)
+	{
+		if(ioService.equals(IOService.DB_IO))
+		{
+			return employeePayrollDBService.getEmployeeJoinCount( startDate,  endDate);
+		}
+
+		return 0;
+	}
+
+	public void deleteEmployeeData(IOService ioService,int id) 
+	{
+		if(ioService.equals(IOService.DB_IO))
+		{
+			 employeePayrollDBService.deleteEmployeeData(id);
+		}
+		
 	}
 	
 }
