@@ -93,10 +93,10 @@ public class EmployeePayrollDBService {
 			if(name.isEmpty()) {
 				throw new EmployeePayrollException(ExceptionType.ENTERED_EMPTY,"Please Enter Valid Name!");
 			}
-			
+
 			employeePayrollUpdateDataStatement.setDouble(1,salary);
 			employeePayrollUpdateDataStatement.setString(2,name);
-			
+
 
 			return employeePayrollUpdateDataStatement.executeUpdate();
 		}
@@ -342,6 +342,22 @@ public class EmployeePayrollDBService {
 		return employeeData;
 	}
 
+
+	public List<Employee> removeEmployee(int id) {
+
+		String sql = String.format("UPDATE employee SET is_active=false WHERE id = '%d';",id);
+		try (Connection connection = this.getConnection()) {
+
+			Statement statement=connection.createStatement();
+			statement.executeUpdate(sql);
+			return this.readData();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	public void addEmployeeToPayroll(String employeeName, String gender, double salary, String startDate, int companyId) throws SQLException  {
 
 		int employeeId=-1;
@@ -415,20 +431,7 @@ public class EmployeePayrollDBService {
 		}
 	}
 
-	public List<Employee> removeEmployee(int id) {
 
-		String sql = String.format("UPDATE employee SET is_active=false WHERE id = '%d';",id);
-		try (Connection connection = this.getConnection()) {
-
-			Statement statement=connection.createStatement();
-			statement.executeUpdate(sql);
-			return this.readData();
-		} 
-		catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
 	public List<Employee> removeEmployee(String name) {
 
 		String sql = String.format("DELETE FROM employee WHERE name = '%s';",name);
