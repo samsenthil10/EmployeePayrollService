@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 import com.bridgelabz.employeepayrollservice.EmployeePayrollService.IOService;
 
-public class EmployeePayrollServiceMain {
+public class EmployeePayrollMain {
 	
 	public static void main(String[] args) {
 
