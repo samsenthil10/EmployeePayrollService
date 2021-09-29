@@ -1,6 +1,7 @@
 package com.bridgelabz.employeepayrollservice;
 
 import java.sql.DriverManager;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,33 +15,29 @@ import com.bridgelabz.employeepayrollservice.EmployeePayrollException.ExceptionT
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.sql.Connection;
-public class EmployeePayrollDBService 
-{
+import java.sql.Date;
+
+public class EmployeePayrollDBService {
+
 	private static EmployeePayrollDBService employeePayrollDBService;
-	
-	private PreparedStatement employeePayrollDataStatement;
-	private PreparedStatement employeePayrollJoinDateStatement;
-	private PreparedStatement employeePayrollWriteDataStatement;
+	private PreparedStatement employeeDataStatement;
 	private PreparedStatement employeePayrollUpdateDataStatement;
 
-	public EmployeePayrollDBService()
-	{
+	public EmployeePayrollDBService() {
 
 	}
 
-	public static EmployeePayrollDBService getInstance() 
-	{
+	public static EmployeePayrollDBService getInstance() {
 
-		if(employeePayrollDBService==null) 
-		{
+		if(employeePayrollDBService==null) {
 
 			employeePayrollDBService=new EmployeePayrollDBService();
 		}
 		return  employeePayrollDBService;
 	}
 
-	private Connection getConnection() throws SQLException 
-	{
+	private Connection getConnection() throws SQLException {
+
 		String jdbcURL ="jdbc:mysql://localhost:3306/payroll_service?allowPublicKeyRetrieval=true&useSSL=false";
 		String username="root";
 		String password="root@123";
@@ -49,221 +46,158 @@ public class EmployeePayrollDBService
 		connection=DriverManager.getConnection(jdbcURL,username,password);
 		System.out.println("Connection is successfull!!"+connection);
 
-
 		return connection;
 	}
 
-	public List<EmployeePayrollData> readData() 
-	{
-		String sql="SELECT * FROM payroll JOIN employee ON payroll.id=employee.id";
-		List<EmployeePayrollData> employeePayrollList=new ArrayList<EmployeePayrollData>();
-		try (Connection connection = this.getConnection())
-		{
+	public List<Employee> readData() {
 
-			Statement statement=connection.createStatement();
-			ResultSet resultSet=statement.executeQuery(sql);
-			employeePayrollList=this.getEmployeePayrollData(resultSet);
+		String sql="SELECT * FROM employee";
+		List<Employee> employeeList = getEmployeeDataUsingDB(sql);
 
-		} 
-		catch (SQLException e) 
-		{
-			e.printStackTrace();
-		}
+		return employeeList;
+	}	
 
-		return employeePayrollList;
-	}
-	
-	public List<EmployeePayrollData> readDataOld() 
-	{
-		String sql="SELECT * FROM employee_payroll";
-		List<EmployeePayrollData> employeePayrollList=new ArrayList<EmployeePayrollData>();
-		try (Connection connection = this.getConnection())
-		{
+	public int updateEmployeeData(String name, double salary) throws EmployeePayrollException {
 
-			Statement statement=connection.createStatement();
-			ResultSet resultSet=statement.executeQuery(sql);
-			employeePayrollList=this.getEmployeePayrollData(resultSet);
-
-		} 
-		catch (SQLException e) 
-		{
-			e.printStackTrace();
-		}
-
-		return employeePayrollList;
-	}
-
-	public int updateEmployeeData(String name, double salary) throws EmployeePayrollException 
-	{
 		this.updateEmployeeDataUsingPreparedStatement(name,salary);
 		return 0;
 	}
 
-	public int updateEmployeeDataUsingStatement(String name, double salary) 
-	{
-		String sql = String.format("UPDATE payroll JOIN employee ON payroll.id=employee.id SET basic_pay = %.2f WHERE name = '%s';",salary,name);
-		try (Connection connection = this.getConnection())
-		{
-			if(name.isEmpty())
-			{
-				throw new EmployeePayrollException(ExceptionType.ENTERED_EMPTY,"Please enter valid Name");
+	public int updateEmployeeDataUsingStatement(String name, double salary) {
+
+		String sql = String.format("UPDATE employee SET salary = %.2f WHERE name = '%s';",salary,name);
+		try (Connection connection = this.getConnection()) {
+			if(name.isEmpty()) {
+
+				throw new EmployeePayrollException(ExceptionType.ENTERED_EMPTY,"Please Enter Valid Name!");
 			}
 			Statement statement=connection.createStatement();
 			return statement.executeUpdate(sql);
 		} 
-		catch (SQLException e) 
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
-		catch (NullPointerException e) 
-		{
-			throw new EmployeePayrollException(ExceptionType.ENTERED_NULL,"Please enter valid Name");
+		catch (NullPointerException e) {
+			throw new EmployeePayrollException(ExceptionType.ENTERED_NULL,"Please Enter Valid Name!");
 		}
 		return 0;
 	}
 
-	private int updateEmployeeDataUsingPreparedStatement(String name, double salary) throws EmployeePayrollException 
-	{
-		if(this.employeePayrollUpdateDataStatement==null)
-		{
+	private int updateEmployeeDataUsingPreparedStatement(String name, double salary) throws EmployeePayrollException  {
+
+		if(this.employeePayrollUpdateDataStatement==null) {
+
 			this.preparedStatementForUpdateEmployeeData();
 		}
-		try
-		{
-			if(name.isEmpty())
-			{
-				throw new EmployeePayrollException(ExceptionType.ENTERED_EMPTY,"Please enter valid Name");
+		try {
+			if(name.isEmpty()) {
+				throw new EmployeePayrollException(ExceptionType.ENTERED_EMPTY,"Please Enter Valid Name!");
 			}
-			employeePayrollUpdateDataStatement.setString(1,name);
-			employeePayrollUpdateDataStatement.setDouble(2,salary);
+			
+			employeePayrollUpdateDataStatement.setDouble(1,salary);
+			employeePayrollUpdateDataStatement.setString(2,name);
+			
 
 			return employeePayrollUpdateDataStatement.executeUpdate();
-
-
 		}
-		catch (SQLException e)
-		{
+
+		catch (SQLException e) {
+
 			e.printStackTrace();
 		}
-		catch (NullPointerException e) 
-		{
-			throw new EmployeePayrollException(ExceptionType.ENTERED_NULL,"Please enter valid Name");
+		catch (NullPointerException e) {
+
+			throw new EmployeePayrollException(ExceptionType.ENTERED_NULL,"Please Enter Valid Name!");
 		}
-
-
 		return 0;
 	}
 
-	private void preparedStatementForUpdateEmployeeData()
-	{
-		try
-		{
+	private void preparedStatementForUpdateEmployeeData() {
+		try {
 			Connection connection = this.getConnection();
-			String sql="UPDATE employee_payroll  SET basic_pay = ? WHERE name = ?;";
+			String sql="UPDATE employee  SET salary = ? WHERE name = ?;";
 
 			employeePayrollUpdateDataStatement=connection.prepareStatement(sql);
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
-
 	}
 
-	public List<EmployeePayrollData> getEmployeePayrollData(String name) throws EmployeePayrollException
-	{
+	public List<Employee> getEmployee(String name) throws EmployeePayrollException {
 
-		List<EmployeePayrollData> employeePayrollList=null;
-		if(this.employeePayrollDataStatement==null)
-		{
+		List<Employee> employeeList=null;
+		if(this.employeeDataStatement==null) {
 			this.preparedStatementForEmployeeData();
 		}
-		try
-		{
-
-			if(name.isEmpty())
-			{
-				throw new EmployeePayrollException(ExceptionType.ENTERED_EMPTY,"Please enter valid Name");
+		try {
+			if(name.isEmpty()) {
+				throw new EmployeePayrollException(ExceptionType.ENTERED_EMPTY,"Please Enter Valid Name!");
 			}
-			employeePayrollDataStatement.setString(1,name);
-			ResultSet resultSet= employeePayrollDataStatement.executeQuery();
-			employeePayrollList=this.getEmployeePayrollData(resultSet);
-
+			employeeDataStatement.setString(1,name);
+			ResultSet resultSet= employeeDataStatement.executeQuery();
+			employeeList=this.getEmployee(resultSet);
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
-		catch (NullPointerException e) 
-		{
-			throw new EmployeePayrollException(ExceptionType.ENTERED_NULL,"Please enter valid Name");
+		catch (NullPointerException e) {
+			throw new EmployeePayrollException(ExceptionType.ENTERED_NULL,"Please Enter Valid Name!");
 		}
-		return employeePayrollList;
+		return employeeList;
 	}
 
-	private List<EmployeePayrollData> getEmployeePayrollData(ResultSet resultSet)
-	{
+	private List<Employee> getEmployee(ResultSet resultSet) {
 
-		List<EmployeePayrollData> employeePayrollList=new ArrayList<EmployeePayrollData>();
-		try (Connection connection = this.getConnection())
-		{
-
-			while(resultSet.next())
-			{
+		List<Employee> employeeList=new ArrayList<Employee>();
+		try (Connection connection = this.getConnection()) {
+			while(resultSet.next()) {
 				int id=resultSet.getInt("id");
 				String nameFromDB=resultSet.getString("name");
-				double salary=resultSet.getDouble("basic_pay");
+				double salary=resultSet.getDouble("salary");
 				LocalDate startDate= resultSet.getDate("start").toLocalDate();
-				employeePayrollList.add(new EmployeePayrollData(id, nameFromDB, salary,startDate));
+				employeeList.add(new Employee(id, nameFromDB, salary,startDate));
 			}
-
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
-
-		return employeePayrollList;
-
+		return employeeList;
 	}
 
-	private void preparedStatementForEmployeeData()
-	{
+	private void preparedStatementForEmployeeData() {
 		try {
 			Connection connection = this.getConnection();
-			String sql="SELECT * from employee_payroll WHERE name=?";
-			employeePayrollDataStatement=connection.prepareStatement(sql);
+			String sql="SELECT * from employee WHERE name=?";
+			employeeDataStatement=connection.prepareStatement(sql);
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public List<EmployeePayrollData> getEmployeePayrollDataFromDBUsingStatement(String name)
+	public List<Employee> getEmployeeFromDBUsingStatement(String name) {
 
-	{
-		String sql = String.format("SELECT * FROM payroll JOIN employee ON payroll.id=employee.id where name='Terisa'");
+		String sql = String.format("SELECT * FROM employee  where name= '%s';",name);
 
-		List<EmployeePayrollData> employeePayrollList=new ArrayList<EmployeePayrollData>();
-		try (Connection connection = this.getConnection())
-		{
+		return this.getEmployeeDataUsingDB(sql);
+	}
 
+	private List<Employee> getEmployeeDataUsingDB(String sql) {
+		List<Employee> employeeList=new ArrayList<Employee>();
+		try (Connection connection = this.getConnection()) {
 			Statement statement=connection.createStatement();
 			ResultSet resultSet=statement.executeQuery(sql);
-
-			employeePayrollList=this.getEmployeePayrollData(resultSet);
+			employeeList=this.getEmployee(resultSet);
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
-
-		return employeePayrollList;
+		return employeeList;
 	}
 
-	public Map<String, Double> getDetailsBasedOnGender(int choice)
-	{
+	public Map<String, Double> getDetailsBasedOnGender(int choice) {
+
 		Map<String, Double> genderSalaryMap = new HashMap<String, Double>();
 		String sql="";
 		if(choice == 1)
@@ -277,14 +211,12 @@ public class EmployeePayrollDBService
 		else if(choice == 5)
 			sql="SELECT COUNT(basic_pay),gender FROM payroll JOIN employee ON payroll.id=employee.id GROUP BY gender";
 
-		try (Connection connection = this.getConnection())
-		{
+		try (Connection connection = this.getConnection()) {
 
 			Statement statement=connection.createStatement();
 			ResultSet resultSet=statement.executeQuery(sql);
 
-			while(resultSet.next())
-			{
+			while(resultSet.next()) {
 				String gender=resultSet.getString("gender");
 				if(choice == 1) {
 					double salarySum=resultSet.getDouble("SUM(basic_pay)");
@@ -308,108 +240,208 @@ public class EmployeePayrollDBService
 				}
 			}
 		} 
-		catch (SQLException e) 
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
-
 		return genderSalaryMap;
 	}
 
-	public int getEmployeeJoinCount(String startDate, String endDate)
-	{
-		List<EmployeePayrollData> employeePayrollList=null;
-		if(this.employeePayrollJoinDateStatement==null)
-		{
-			this.preparedStatementToGetEmployeeJoinedCount();
-		}
-		try
-		{
-			employeePayrollJoinDateStatement.setDate(1,java.sql.Date.valueOf(startDate));
-			employeePayrollJoinDateStatement.setDate(2,java.sql.Date.valueOf(endDate));
-
-			ResultSet resultSet= employeePayrollJoinDateStatement.executeQuery();
-			employeePayrollList=this.getEmployeePayrollData(resultSet);
-
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
-		return employeePayrollList.size();
-
+	public int getEmployeeJoinCount(String startDate, String endDate) {
+		String sql = String.format("SELECT * FROM employee WHERE start BETWEEN '%s' AND '%s';",Date.valueOf(startDate),Date.valueOf(endDate));
+		return this.getEmployeeDataUsingDB(sql).size();
 	}
 
-	private void preparedStatementToGetEmployeeJoinedCount()
-	{
-		try
-		{
-			Connection connection = this.getConnection();
-			String sql="SELECT * FROM employee_payroll WHERE start BETWEEN ? AND ?";
-			employeePayrollJoinDateStatement=connection.prepareStatement(sql);
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
-	}
+	public void deleteEmployeeData(int id) {
 
-	public void writeData(List<EmployeePayrollData> employeePayrollList)
-	{
-		if(this.employeePayrollWriteDataStatement==null)
-		{
-			this.preparedStatementToWriteEmployeeData();
-		}
-		for(int index=0;index<employeePayrollList.size();index++)
-		{
-			try
-			{
-				EmployeePayrollData employeePayrollData = employeePayrollList.get(index);
-				employeePayrollWriteDataStatement.setInt(1, employeePayrollData.id);
-				employeePayrollWriteDataStatement.setString(2, employeePayrollData.name);
-				employeePayrollWriteDataStatement.setDouble(3, employeePayrollData.salary);
-				employeePayrollWriteDataStatement.setDate(4,java.sql.Date.valueOf(employeePayrollData.startDate));
-
-				employeePayrollWriteDataStatement.executeUpdate();
-
-			}
-			catch (SQLException e)
-			{
-				e.printStackTrace();
-			}
-
-		}
-
-	}
-
-	private void preparedStatementToWriteEmployeeData()
-	{
-		try
-		{
-			Connection connection = this.getConnection();
-			String sql="INSERT INTO employee_payroll(id,name,basic_pay,start) VALUES (?,?,?,?)";  
-			employeePayrollWriteDataStatement=connection.prepareStatement(sql);
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
-
-	}
-
-	public void deleteEmployeeData(int id) 
-	{
-
-		String sql = String.format("DELETE FROM employee_payroll WHERE id= '%d';",id);
-		try (Connection connection = this.getConnection())
-		{
-
+		String sql = String.format("DELETE FROM employee WHERE id= '%d';",id);
+		try (Connection connection = this.getConnection()) {
 			Statement statement=connection.createStatement();
 			statement.executeUpdate(sql);
 		} 
-		catch (SQLException e) 
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
+
+
+	public Employee addEmployeeToPayroll( String employeeName, String gender, double salary, LocalDate startDate, int companyId) throws SQLException  {
+
+		int employeeId=-1;
+		Connection connection=null;
+		Employee employeeData=null;
+
+		try  {
+
+			connection=this.getConnection();
+			connection.setAutoCommit(false);
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		try(Statement statement=connection.createStatement()) {
+
+			String sql=String.format("INSERT INTO employee(name,gender,salary,start,company_id) VALUES ('%s','%s','%s','%s','%s');", employeeName,gender,salary,startDate,companyId);
+			int rowAffected = statement.executeUpdate(sql,Statement.RETURN_GENERATED_KEYS);
+			if(rowAffected==1) {
+				ResultSet resultSet=statement.getGeneratedKeys();
+				if(resultSet.next()) 
+					employeeId=resultSet.getInt(1);
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				connection.rollback();
+			} 
+			catch (Exception ex) {
+
+				ex.printStackTrace();
+			}
+		}
+		try(Statement statement=connection.createStatement()) {
+
+			double deductions=salary*0.2;
+			double taxablePay=salary-deductions;
+			double tax=taxablePay*0.1;
+			double netPay=salary-tax;
+
+			String sql=String.format("INSERT INTO payroll(id,basic_pay,deductions,taxable_pay,tax,net_pay) VALUES "
+					+ "('%s','%s','%s','%s','%s','%s');",employeeId,salary,deductions,taxablePay,tax,netPay);
+			int rowAffected=statement.executeUpdate(sql);
+			if(rowAffected==1) {
+
+				employeeData = new Employee(employeeId, employeeName, salary, startDate);
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				connection.rollback();
+			} 
+			catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		try {
+			connection.commit();
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			if(connection!=null) {
+				try {
+					connection.close();
+				} 
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return employeeData;
+	}
+
+	public void addEmployeeToPayroll(String employeeName, String gender, double salary, String startDate, int companyId) throws SQLException  {
+
+		int employeeId=-1;
+		Connection connection=null;
+
+		try  {
+
+			connection=this.getConnection();
+			connection.setAutoCommit(false);
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		try(Statement statement=connection.createStatement()) {
+
+			String sql=String.format("INSERT INTO employee(name,gender,salary,start,company_id) VALUES ('%s','%s','%s','%s','%s');", employeeName,gender,salary,startDate,companyId);
+			int rowAffected = statement.executeUpdate(sql,Statement.RETURN_GENERATED_KEYS);
+			if(rowAffected==1) {
+				ResultSet resultSet=statement.getGeneratedKeys();
+				if(resultSet.next()) 
+					employeeId=resultSet.getInt(1);
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				connection.rollback();
+			} 
+			catch (Exception ex) {
+
+				ex.printStackTrace();
+			}
+		}
+		try(Statement statement=connection.createStatement()) {
+
+			double deductions=salary*0.2;
+			double taxablePay=salary-deductions;
+			double tax=taxablePay*0.1;
+			double netPay=salary-tax;
+
+			String sql=String.format("INSERT INTO payroll(id,basic_pay,deductions,taxable_pay,tax,net_pay) VALUES "
+					+ "('%s','%s','%s','%s','%s','%s');",employeeId,salary,deductions,taxablePay,tax,netPay);
+			@SuppressWarnings("unused")
+			int rowAffected=statement.executeUpdate(sql);
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				connection.rollback();
+			} 
+			catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		try {
+			connection.commit();
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			if(connection!=null) {
+				try {
+					connection.close();
+				} 
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public List<Employee> removeEmployee(int id) {
+
+		String sql = String.format("UPDATE employee SET is_active=false WHERE id = '%d';",id);
+		try (Connection connection = this.getConnection()) {
+
+			Statement statement=connection.createStatement();
+			statement.executeUpdate(sql);
+			return this.readData();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	public List<Employee> removeEmployee(String name) {
+
+		String sql = String.format("DELETE FROM employee WHERE name = '%s';",name);
+		try (Connection connection = this.getConnection()) {
+
+			Statement statement=connection.createStatement();
+			statement.executeUpdate(sql);
+			return this.readData();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 }
+
