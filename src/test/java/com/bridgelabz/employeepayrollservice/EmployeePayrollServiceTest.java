@@ -65,7 +65,7 @@ public class EmployeePayrollServiceTest {
 
 		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
 		expectedGenderSalaryMap.put("M", 2000000.0);
-		expectedGenderSalaryMap.put("F", 2000000.0);
+		expectedGenderSalaryMap.put("F", 3000000.0);
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(1);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}
@@ -77,7 +77,7 @@ public class EmployeePayrollServiceTest {
 
 		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
 		expectedGenderSalaryMap.put("M", 1000000.0);
-		expectedGenderSalaryMap.put("F", 2000000.0);
+		expectedGenderSalaryMap.put("F", 3000000.0);
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(2);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}
@@ -89,7 +89,7 @@ public class EmployeePayrollServiceTest {
 
 		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
 		expectedGenderSalaryMap.put("M", 1000000.0);
-		expectedGenderSalaryMap.put("F", 2000000.0);
+		expectedGenderSalaryMap.put("F", 3000000.0);
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(3);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}
@@ -101,7 +101,7 @@ public class EmployeePayrollServiceTest {
 
 		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
 		expectedGenderSalaryMap.put("M", 1000000.0);
-		expectedGenderSalaryMap.put("F", 2000000.0);
+		expectedGenderSalaryMap.put("F", 3000000.0);
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(4);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}
@@ -152,5 +152,20 @@ public class EmployeePayrollServiceTest {
 		Assert.assertEquals(employeeListFromDBEmployees.size(), count);
 		Assert.assertEquals(employeeListInMemory.size(), count-1);
 	}
-
+	
+	@Test
+	public void givenNewSalaryForEmployee_WhenUpdated_ShouldUpdateInEmployeeAndPayroll()
+	{
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		EmployeePayrollDBService employeePayrollDBService = new EmployeePayrollDBService();
+		@SuppressWarnings("unused")
+		List<Employee> employeePayrollList = employeePayrollService.readEmployee(IOService.DB_IO);
+		try {
+			employeePayrollDBService.updateEmployeeToPayroll("Terisa",3000000.0);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		boolean result=employeePayrollService.checkEmployeePayrollInSyncWithDB("Terisa");
+		Assert.assertTrue(result);
+	}
 }
