@@ -11,7 +11,7 @@ public class EmployeePayrollFileIOService {
 
 	public static String PAYROLL_FILE_NAME = "payroll-file.txt";
 
-	public void writeData(List<EmployeePayrollData> employeePayrollList) {
+	public void writeData(List<Employee> employeePayrollList) {
 		StringBuffer empBuffer = new StringBuffer();
 		employeePayrollList.forEach(employee -> {
 			String employeeDataString = employee.toString().concat("\n");
@@ -46,18 +46,25 @@ public class EmployeePayrollFileIOService {
 		return entries;
 	}
 
-	public List<EmployeePayrollData> readData() {
-		List<EmployeePayrollData> employeePayrollDatas = new ArrayList<EmployeePayrollData>();
+	public List<Employee> readData() {
+
+		List<Employee> employeePayrollList = new ArrayList<Employee>();
+		List<String[]> employeeDataFromFile = new ArrayList<String[]>();
 		try {
-			Files.lines(new File(PAYROLL_FILE_NAME).toPath()).map(String::trim).forEach(line -> {
-				EmployeePayrollData tempEmp = new EmployeePayrollData(
-						Integer.parseInt(line.split(",")[0].split("=")[1]), line.split(",")[1].split("=")[1],
-						Double.parseDouble(line.split(",")[2].split("=")[1]));
-				employeePayrollDatas.add(tempEmp);
-			});
-		} catch (IOException e) {
+
+			Files.lines(new File("payroll-file.txt").toPath())
+			.map(line->line.trim())
+			.forEach(line->employeeDataFromFile.add(line.split(",")));
+			for(int index=0;index<employeeDataFromFile.size();index++) {
+
+				employeePayrollList.add(new Employee(Integer.parseInt(employeeDataFromFile.get(index)[0].split("=")[1])
+						,employeeDataFromFile.get(index)[1].split("=")[1]
+								,Double.parseDouble(employeeDataFromFile.get(index)[3].split("=")[1])));
+			}
+		}
+		catch(IOException e) {
 			e.printStackTrace();
 		}
-		return employeePayrollDatas;
+		return employeePayrollList;
 	}
 }
