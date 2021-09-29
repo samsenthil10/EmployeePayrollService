@@ -1,3 +1,0 @@
-Employee [employeeId=1, employeeName=Jeff Bezos, gender=null, salary=100000.0, startDate=null, company=null, payroll=null, departments=null]
-Employee [employeeId=2, employeeName=Bill Gates, gender=null, salary=200000.0, startDate=null, company=null, payroll=null, departments=null]
-Employee [employeeId=3, employeeName=Mark Zuckerberg, gender=null, salary=300000.0, startDate=null, company=null, payroll=null, departments=null]
