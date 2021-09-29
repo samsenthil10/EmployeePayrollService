@@ -2,6 +2,7 @@ package com.bridgelabz.employeepayrollservice;
 
 import static org.junit.Assert.assertEquals;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -15,31 +16,33 @@ import org.junit.Test;
 import com.bridgelabz.employeepayrollservice.EmployeePayrollService.IOService;
 public class EmployeePayrollServiceTest {
 
-    @Test
-    public void given3EmployeesWhenWrittenToFileShouldMatchEmployeeEntries() {
-        EmployeePayrollData[] arrayOfEmps = {
-                new EmployeePayrollData(1, "Jeff Bezos", 100000.0),
-                new EmployeePayrollData(2, "Bill Gates", 200000.0),
-                new EmployeePayrollData(3, "Mark Zuckerberg", 300000.0)
-        };
-        EmployeePayrollService employeePayrollService;
-        employeePayrollService = new EmployeePayrollService(Arrays.asList(arrayOfEmps));
-        employeePayrollService.writeEmployeePayrollData(EmployeePayrollService.IOService.FILE_IO);
-        long entries = employeePayrollService.countEntries(EmployeePayrollService.IOService.FILE_IO);
-		Assert.assertEquals( 3, entries);
-    }
-    @Test
-    public void givenFileOnReadingFromFileShouldMatchEmployeeCount() {
-        EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-        long entries = employeePayrollService.readEmployeePayrollData(EmployeePayrollService.IOService.FILE_IO);
-        assertEquals(3, entries);
-    } 
-    
-    @Test
-	public void  givenEmployeePayrollInDB_WhenRetrieved_ShouldMatchEmployeeCount()
-	{
+	@Test
+	public void given3EmployeesWhenWrittenToFileShouldMatchEmployeeEntries() {
+
+		Employee[] arrayOfEmployees = {
+				new Employee(1, "Jeff Bezos", 100000.0),
+				new Employee(2, "Bill Gates", 200000.0),
+				new Employee(3, "Mark Zuckerberg", 300000.0)
+		};
+		EmployeePayrollService employeePayrollService;
+		employeePayrollService = new EmployeePayrollService(Arrays.asList(arrayOfEmployees));
+		employeePayrollService.writeEmployee(IOService.FILE_IO);
+		employeePayrollService.printData(IOService.FILE_IO);
+		long entries = employeePayrollService.countEntries(IOService.FILE_IO);
+		Assert.assertEquals(3, entries);
+	}
+	@Test
+	public void givenFileOnReadingFromFileShouldMatchEmployeeCount() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		List<EmployeePayrollData> employeePayrollList = employeePayrollService.readEmployeePayrollDataFromDB( IOService.DB_IO);
+		long entries = employeePayrollService.readEmployee(EmployeePayrollService.IOService.FILE_IO).size();
+		assertEquals(3, entries);
+	} 
+
+	@Test
+	public void  givenEmployeePayrollInDB_WhenRetrieved_ShouldMatchEmployeeCount() {
+
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		List<Employee> employeePayrollList = employeePayrollService.readEmployee(IOService.DB_IO);
 		Assert.assertEquals(3, employeePayrollList.size());
 	}
 
@@ -49,12 +52,12 @@ public class EmployeePayrollServiceTest {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		EmployeePayrollDBService employeePayrollDBService = new EmployeePayrollDBService();
 		@SuppressWarnings("unused")
-		List<EmployeePayrollData> employeePayrollList = employeePayrollService.readEmployeePayrollDataFromDB(IOService.DB_IO);
-		employeePayrollDBService.updateEmployeeDataUsingStatement("Terisa",3000000.00);
-		boolean result=employeePayrollService.checkEmployeePayrollInSyncWithDBUsingStatement("Terisa");
+		List<Employee> employeePayrollList = employeePayrollService.readEmployee(IOService.DB_IO);
+		employeePayrollDBService.updateEmployeeDataUsingStatement("Terisa",3000000.0);
+		boolean result=employeePayrollService.checkEmployeePayrollInSyncWithDB("Terisa");
 		Assert.assertTrue(result);
 	}
-	
+
 	@Test
 	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalarySumWithGenderMap()
 	{
@@ -62,11 +65,11 @@ public class EmployeePayrollServiceTest {
 
 		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
 		expectedGenderSalaryMap.put("M", 2000000.0);
-		expectedGenderSalaryMap.put("F", 3000000.0);
+		expectedGenderSalaryMap.put("F", 2000000.0);
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(1);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}
-	
+
 	@Test
 	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalaryAvgWithGenderMap()
 	{
@@ -74,11 +77,11 @@ public class EmployeePayrollServiceTest {
 
 		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
 		expectedGenderSalaryMap.put("M", 1000000.0);
-		expectedGenderSalaryMap.put("F", 3000000.0);
+		expectedGenderSalaryMap.put("F", 2000000.0);
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(2);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}
-	
+
 	@Test
 	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalaryMinWithGenderMap()
 	{
@@ -86,11 +89,11 @@ public class EmployeePayrollServiceTest {
 
 		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
 		expectedGenderSalaryMap.put("M", 1000000.0);
-		expectedGenderSalaryMap.put("F", 3000000.0);
+		expectedGenderSalaryMap.put("F", 2000000.0);
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(3);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}
-	
+
 	@Test
 	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalaryMaxWithGenderMap()
 	{
@@ -98,11 +101,11 @@ public class EmployeePayrollServiceTest {
 
 		Map<String, Double> expectedGenderSalaryMap = new HashMap<String, Double>();
 		expectedGenderSalaryMap.put("M", 1000000.0);
-		expectedGenderSalaryMap.put("F", 3000000.0);
+		expectedGenderSalaryMap.put("F", 2000000.0);
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(4);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}
-	
+
 	@Test
 	public void givenEmployeePayrollInDB_ShouldRetrieveEmployeeSalaryCountWithGenderMap()
 	{
@@ -114,7 +117,7 @@ public class EmployeePayrollServiceTest {
 		Map<String, Double> genderSalaryMap = employeePayrollService.getDetailsBasedOnGender(5);
 		Assert.assertEquals(expectedGenderSalaryMap, genderSalaryMap);
 	}	
-	
+
 	@Test
 	public void givenDateRangeOfJoiningDate_ShouldReturnCountOfEmployeesJoined()
 	{
@@ -129,20 +132,25 @@ public class EmployeePayrollServiceTest {
 		Assert.assertEquals(2,count);
 	}
 	@Test
-	public void  givenEmployeePayrollInDB_WhenWrittenToDatabase_ShouldMatchEmployeeCount()
-	{
-		String dateString="2018-01-03";
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		LocalDate date= LocalDate.parse(dateString, formatter);
-		EmployeePayrollData[] arrayOfEmployees= { new EmployeePayrollData(5, "Sheldon", 100000.0,date)};
+	public void givenNewEmployee_WhenAddedShouldSyncWithDB() throws SQLException, EmployeePayrollException {
 
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService(Arrays.asList(arrayOfEmployees));
-
-		employeePayrollService.writeEmployeePayrollData( IOService.DB_IO);
-		List<EmployeePayrollData> employeePayrollList = employeePayrollService.readEmployeePayrollDataFromOldDB( IOService.DB_IO);
-
-		Assert.assertEquals(4, employeePayrollList.size());
-
-		employeePayrollService.deleteEmployeeData(IOService.DB_IO,5);
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployee(IOService.DB_IO);
+		employeePayrollService.addEmployeeToPayroll("Test", "M", 10000.00, LocalDate.now(), 1);
+		boolean result=employeePayrollService.checkEmployeePayrollInSyncWithDB("Test");
+		Assert.assertTrue(result);
+		EmployeePayrollDBService.getInstance().removeEmployee("Test");
 	}
+
+	@Test
+	public void whenEmployeeIsRemoved_DatabaseShouldContainEmployeeDetailAsInactive() {
+		
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		int count = employeePayrollService.readEmployee( IOService.DB_IO).size();
+		List<Employee> employeeListFromDBEmployees=	employeePayrollService .removeEmployee(IOService.DB_IO,1);
+		List<Employee> employeeListInMemory = employeePayrollService.getEmployeePayrollList();
+		Assert.assertEquals(employeeListFromDBEmployees.size(), count);
+		Assert.assertEquals(employeeListInMemory.size(), count-1);
+	}
+
 }
